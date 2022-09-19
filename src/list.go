@@ -18,7 +18,7 @@ func (c *BaseClient) LRANGE(key string, start, end int64) ([]string, error) {
 	return redis.Strings(conn.Do("lrange", args...))
 }
 
-// 移除元素, count>0, 重头向后搜, count<0, 表尾向前搜, count=0, 移除所有. 返回被移除的个数
+// 移除元素, count>0, 从表头向表尾搜索, count<0, 表尾向表头搜, count=0, 移除所有. 返回被移除的个数
 func (c *BaseClient) LREM(key string, value interface{}, count int64) (int64, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()

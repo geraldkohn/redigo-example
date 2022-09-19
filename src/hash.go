@@ -21,6 +21,13 @@ func (c *BaseClient) HGET(key, field string) (string, error) {
 	return v, err
 }
 
+// 删除字段, 删除成功返回1, 删除失败返回0
+func (c *BaseClient) HDEL(key, field string) (int, error) {
+	conn := c.redisPool.Get()
+	defer conn.Close()
+	return redis.Int(conn.Do("HDEL", key, field))
+}
+
 //命令用于查找所有符合给定模式 pattern 的 key 。。
 func (c *BaseClient) KEYS(pattern string) ([]string, error) {
 	conn := c.redisPool.Get()
