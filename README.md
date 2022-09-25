@@ -4,3 +4,4 @@
 * ZSET
 * LIST
 * HASH
+* SET
