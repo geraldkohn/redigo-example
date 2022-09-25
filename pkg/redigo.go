@@ -1,4 +1,4 @@
-package src
+package pkg
 
 import (
 	"errors"
@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	Addr     = "192.168.100.26"
-	Password = ""
+	addr     = "192.168.100.26"
+	password = ""
 )
 
-type RedisConn redis.Conn
+// type redisConn redis.Conn
 
-type BaseClient struct {
+type baseClient struct {
 	redisPool *redis.Pool
 	address   string
 }
@@ -27,10 +27,10 @@ func getRedisPool(host string) *redis.Pool {
 		IdleTimeout: 120 * time.Second, //空闲连接关闭时间
 
 		Dial: func() (redis.Conn, error) {
-			option := redis.DialPassword(Password)
+			option := redis.DialPassword(password)
 			c, err := redis.Dial("tcp", host, option)
 			if err != nil {
-				return nil, errors.New(err.Error() + host + Password)
+				return nil, errors.New(err.Error() + host + password)
 			}
 			if _, err := c.Do("ping"); err != nil {
 				c.Close()
@@ -48,16 +48,16 @@ func getRedisPool(host string) *redis.Pool {
 	}
 }
 
-func GetRedisPool() (*BaseClient, error) {
-	pool := getRedisPool(Addr)
-	return &BaseClient{
+func GetRedisPool() (*baseClient, error) {
+	pool := getRedisPool(addr)
+	return &baseClient{
 		redisPool: pool,
-		address:   Addr,
+		address:   addr,
 	}, nil
 }
 
 // 设置锁
-func (c *BaseClient) Lock(key, value string, ttl int64) (bool, error) {
+func (c *baseClient) Lock(key, value string, ttl int64) (bool, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	_, err := redis.String(conn.Do("SET", key, value, "PX", ttl, "NX"))
@@ -70,19 +70,19 @@ func (c *BaseClient) Lock(key, value string, ttl int64) (bool, error) {
 	return true, nil
 }
 
-func (c *BaseClient) Unlock(key string) error {
+func (c *baseClient) Unlock(key string) error {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	_, err := conn.Do("del", key)
 	return err
 }
 
-func (c *BaseClient) GetConn() redis.Conn {
-	return c.redisPool.Get()
-}
+// func (c *BaseClient) GetConn() redis.Conn {
+// 	return c.redisPool.Get()
+// }
 
 // 设置key的过期时间:秒
-func (c *BaseClient) ExpireAt(key string, ttl int64) (int, error) {
+func (c *baseClient) ExpireAt(key string, ttl int64) (int, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	return redis.Int(conn.Do("expire", key, ttl))

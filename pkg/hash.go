@@ -1,17 +1,18 @@
-package src
+package pkg
 
 import "github.com/gomodule/redigo/redis"
 
 //----------------hash操作----------------
+
 //字段赋值，旧值会被覆盖，设置成功返回1，被覆盖了返回0
-func (c *BaseClient) HSET(key, field string, value interface{}) (int, error) {
+func (c *baseClient) HSET(key, field string, value interface{}) (int, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	return redis.Int(conn.Do("HSET", key, field, value))
 }
 
 //字段赋值，旧值会被覆盖，设置成功返回1，被覆盖了返回0
-func (c *BaseClient) HGET(key, field string) (string, error) {
+func (c *baseClient) HGET(key, field string) (string, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	v, err := redis.String(conn.Do("HGET", key, field))
@@ -22,14 +23,14 @@ func (c *BaseClient) HGET(key, field string) (string, error) {
 }
 
 // 删除字段, 删除成功返回1, 删除失败返回0
-func (c *BaseClient) HDEL(key, field string) (int, error) {
+func (c *baseClient) HDEL(key, field string) (int, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	return redis.Int(conn.Do("HDEL", key, field))
 }
 
 //命令用于查找所有符合给定模式 pattern 的 key 。。
-func (c *BaseClient) KEYS(pattern string) ([]string, error) {
+func (c *baseClient) KEYS(pattern string) ([]string, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 
@@ -37,7 +38,7 @@ func (c *BaseClient) KEYS(pattern string) ([]string, error) {
 }
 
 //获取给定多个字段的值
-func (c *BaseClient) HMGET(key string, field ...string) ([]string, error) {
+func (c *baseClient) HMGET(key string, field ...string) ([]string, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	args := redis.Args{}.Add(key)
@@ -48,7 +49,7 @@ func (c *BaseClient) HMGET(key string, field ...string) ([]string, error) {
 }
 
 //设置给定多个字段的值
-func (c *BaseClient) HMSET(key string, fieldAndValue ...interface{}) (string, error) {
+func (c *baseClient) HMSET(key string, fieldAndValue ...interface{}) (string, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	args := redis.Args{}.Add(key)
@@ -59,21 +60,21 @@ func (c *BaseClient) HMSET(key string, fieldAndValue ...interface{}) (string, er
 }
 
 //通过结构体设置哈希
-func (c *BaseClient) HMSETByStruct(key string, dest interface{}) (string, error) {
+func (c *baseClient) HMSETByStruct(key string, dest interface{}) (string, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	return redis.String(conn.Do("HMSET", redis.Args{}.Add(key).AddFlat(dest)...))
 }
 
 //为哈希表 key 中的指定字段的整数值加上增量 increment 。
-func (c *BaseClient) HINCRBY(key, field string, increment int) (int, error) {
+func (c *baseClient) HINCRBY(key, field string, increment int) (int, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	return redis.Int(conn.Do("HINCRBY", key, field, increment))
 }
 
 //返回key下所有的字段和值
-func (c *BaseClient) HGETALL(key string, dest interface{}) error {
+func (c *baseClient) HGETALL(key string, dest interface{}) error {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	value, _ := redis.Values(conn.Do("HGETALL", key))
@@ -85,7 +86,7 @@ type Converter interface {
 }
 
 //批量返回hash
-func (c *BaseClient) HGETALLBatch(convert Converter, dest interface{}, key ...string) error {
+func (c *baseClient) HGETALLBatch(convert Converter, dest interface{}, key ...string) error {
 	luaScript := `local rst={}; for i,v in pairs(KEYS) do rst[i]=redis.call('HGETALL', v) end;return rst`
 	conn := c.redisPool.Get()
 	defer conn.Close()

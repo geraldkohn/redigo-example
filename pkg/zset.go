@@ -1,4 +1,4 @@
-package src
+package pkg
 
 import (
 	"strconv"
@@ -7,18 +7,20 @@ import (
 )
 
 //-----------------有序集合的操作-------------------
+
 // 向有序集合中添加元素
-func (c *BaseClient) ZADD(key, item string, score interface{}) (bool, error) {
+func (c *baseClient) ZADD(key, item string, score interface{}) (bool, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	return redis.Bool(conn.Do("zadd", key, score, item))
 }
 
 // 移除集合元素
-func (c *BaseClient) ZREM(key string, items ...string) (bool, error) {
+func (c *baseClient) ZREM(key string, items ...string) (bool, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	args := redis.Args{}
+	args.Add(key)
 	for _, v := range items {
 		args = args.Add(v)
 	}
@@ -26,7 +28,7 @@ func (c *BaseClient) ZREM(key string, items ...string) (bool, error) {
 }
 
 // 集合内元素数量
-func (c *BaseClient) ZCARD(key string) (int, error) {
+func (c *baseClient) ZCARD(key string) (int, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	return redis.Int(conn.Do("zcard", key))
@@ -34,7 +36,7 @@ func (c *BaseClient) ZCARD(key string) (int, error) {
 
 // 集合交集, 取最小值
 // destination: 目的集合的名称
-func (c *BaseClient) ZINTERSTOREMIN(destination string, keys ...string) (bool, error) {
+func (c *baseClient) ZINTERSTOREMIN(destination string, keys ...string) (bool, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	args := redis.Args{}.Add(destination).Add(len(keys))
@@ -46,7 +48,7 @@ func (c *BaseClient) ZINTERSTOREMIN(destination string, keys ...string) (bool, e
 }
 
 // 集合交集, 取最大值
-func (c *BaseClient) ZINTERSTOREMAX(destination string, keys ...string) (bool, error) {
+func (c *baseClient) ZINTERSTOREMAX(destination string, keys ...string) (bool, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	args := redis.Args{}.Add(destination).Add(len(keys))
@@ -58,7 +60,7 @@ func (c *BaseClient) ZINTERSTOREMAX(destination string, keys ...string) (bool, e
 }
 
 // 集合交集, 取和
-func (c *BaseClient) ZINTERSTORESUM(destination string, keys ...string) (bool, error) {
+func (c *baseClient) ZINTERSTORESUM(destination string, keys ...string) (bool, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	args := redis.Args{}.Add(destination).Add(len(keys))
@@ -70,7 +72,7 @@ func (c *BaseClient) ZINTERSTORESUM(destination string, keys ...string) (bool, e
 }
 
 // 集合并集, 取最小值
-func (c *BaseClient) ZUNIONSTOREMIN(destination string, keys ...string) (bool, error) {
+func (c *baseClient) ZUNIONSTOREMIN(destination string, keys ...string) (bool, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	args := redis.Args{}.Add(destination).Add(len(keys))
@@ -82,7 +84,7 @@ func (c *BaseClient) ZUNIONSTOREMIN(destination string, keys ...string) (bool, e
 }
 
 // 集合并集, 取最大值
-func (c *BaseClient) ZUNIONSTOREMAX(destination string, keys ...string) (bool, error) {
+func (c *baseClient) ZUNIONSTOREMAX(destination string, keys ...string) (bool, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	args := redis.Args{}.Add(destination).Add(len(keys))
@@ -94,7 +96,7 @@ func (c *BaseClient) ZUNIONSTOREMAX(destination string, keys ...string) (bool, e
 }
 
 // 集合并集, 取和
-func (c *BaseClient) ZUNIONSTORESUM(destination string, keys ...string) (bool, error) {
+func (c *baseClient) ZUNIONSTORESUM(destination string, keys ...string) (bool, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	args := redis.Args{}.Add(destination).Add(len(keys))
@@ -106,7 +108,7 @@ func (c *BaseClient) ZUNIONSTORESUM(destination string, keys ...string) (bool, e
 }
 
 // 获取集合内元素
-func (c *BaseClient) ZRANGE(key string, start, end int64, inverted bool) ([]string, error) {
+func (c *baseClient) ZRANGE(key string, start, end int64, inverted bool) ([]string, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	command := "zrange"
@@ -118,7 +120,7 @@ func (c *BaseClient) ZRANGE(key string, start, end int64, inverted bool) ([]stri
 }
 
 // 获取集合内元素和它的分数
-func (c *BaseClient) ZRANGEWITHSCORES(key string, start, end int64, inverted bool) (map[string]int64, error) {
+func (c *baseClient) ZRANGEWITHSCORES(key string, start, end int64, inverted bool) (map[string]int64, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	command := "zrange"
@@ -129,9 +131,8 @@ func (c *BaseClient) ZRANGEWITHSCORES(key string, start, end int64, inverted boo
 	return redis.Int64Map(conn.Do(command, args...))
 }
 
-
 // 获取集合内元素
-func (c *BaseClient) ZRANGEBYSCORE(key string, min, max, offset, count int64, inverted bool) ([]string, error) {
+func (c *baseClient) ZRANGEBYSCORE(key string, min, max, offset, count int64, inverted bool) ([]string, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	cmin := strconv.Itoa(int(min))
@@ -154,7 +155,7 @@ func (c *BaseClient) ZRANGEBYSCORE(key string, min, max, offset, count int64, in
 }
 
 // 获取集合内元素带分数
-func (c *BaseClient) ZRANGEBYSCOREWITHSCORE(key string, min, max, offset, count int64, inverted bool) (map[string]int64, error) {
+func (c *baseClient) ZRANGEBYSCOREWITHSCORE(key string, min, max, offset, count int64, inverted bool) (map[string]int64, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	cmin := strconv.Itoa(int(min))
@@ -177,7 +178,7 @@ func (c *BaseClient) ZRANGEBYSCOREWITHSCORE(key string, min, max, offset, count 
 }
 
 // 获取集合内元素的分数值
-func (c *BaseClient) ZSCORE(key, item string) (int64, error) {
+func (c *baseClient) ZSCORE(key, item string) (int64, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	v, err := redis.Int64(conn.Do("ZSCORE", key, item))
@@ -188,7 +189,7 @@ func (c *BaseClient) ZSCORE(key, item string) (int64, error) {
 }
 
 // 移除有序集中，指定分数（score）区间内的所有成员
-func (c *BaseClient) ZREMRANGEBYSCORE(key string, min, max int64) (int64, error) {
+func (c *baseClient) ZREMRANGEBYSCORE(key string, min, max int64) (int64, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	v, err := redis.Int64(conn.Do("ZREMRANGEBYSCORE", key, min, max))
@@ -199,7 +200,7 @@ func (c *BaseClient) ZREMRANGEBYSCORE(key string, min, max int64) (int64, error)
 }
 
 // 返回有序集合中指定成员的排名
-func (c *BaseClient) ZRANK(key, item string, inverted bool) (int64, error) {
+func (c *baseClient) ZRANK(key, item string, inverted bool) (int64, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	command := "ZRANK"
@@ -214,9 +215,8 @@ func (c *BaseClient) ZRANK(key, item string, inverted bool) (int64, error) {
 }
 
 //更新集合内元素的分数值，
-func (c *BaseClient) ZINCRBY(key, item string, increment int64) (int64, error) {
+func (c *baseClient) ZINCRBY(key, item string, increment int64) (int64, error) {
 	conn := c.redisPool.Get()
 	defer conn.Close()
 	return redis.Int64(conn.Do("ZINCRBY", key, increment, item))
 }
-
